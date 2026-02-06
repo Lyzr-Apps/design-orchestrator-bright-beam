@@ -683,7 +683,7 @@ Please provide a comprehensive system design with components (nodes) and their c
             })}
 
             {/* Connections */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            <svg className="absolute inset-0 w-full h-full">
               {project.connections.map((conn) => {
                 const sourceNode = project.nodes.find(n => n.id === conn.source)
                 const targetNode = project.nodes.find(n => n.id === conn.target)
@@ -704,17 +704,45 @@ Please provide a comprehensive system design with components (nodes) and their c
 
                 const midX = (start.x + end.x) / 2
                 const midY = (start.y + end.y) / 2
+                const isSelected = selectedConnection?.id === conn.id
 
                 return (
                   <g key={conn.id}>
+                    {/* Invisible thick line for easier clicking */}
                     <path
                       d={`M ${start.x} ${start.y} Q ${midX} ${start.y} ${midX} ${midY} T ${end.x} ${end.y}`}
                       fill="none"
-                      stroke="#6B7280"
-                      strokeWidth="2"
+                      stroke="transparent"
+                      strokeWidth="20"
+                      style={{ cursor: 'pointer', pointerEvents: 'all' }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleConnectionClick(conn)
+                      }}
+                    />
+                    {/* Visible line */}
+                    <path
+                      d={`M ${start.x} ${start.y} Q ${midX} ${start.y} ${midX} ${midY} T ${end.x} ${end.y}`}
+                      fill="none"
+                      stroke={isSelected ? '#F5C518' : '#6B7280'}
+                      strokeWidth={isSelected ? '3' : '2'}
                       strokeDasharray={conn.type === 'async' ? '5,5' : '0'}
                       markerEnd="url(#arrowhead)"
+                      style={{ pointerEvents: 'none' }}
                     />
+                    {/* Label */}
+                    {conn.label && (
+                      <text
+                        x={midX}
+                        y={midY - 10}
+                        fill="#6B7280"
+                        fontSize="12"
+                        textAnchor="middle"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        {conn.label}
+                      </text>
+                    )}
                   </g>
                 )
               })}
@@ -950,6 +978,71 @@ Please provide a comprehensive system design with components (nodes) and their c
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Connection Edit Modal */}
+      <Dialog open={connectionEditOpen} onOpenChange={setConnectionEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Connection</DialogTitle>
+          </DialogHeader>
+          {selectedConnection && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-900 mb-2 block">Label</Label>
+                <Input
+                  value={selectedConnection.label || ''}
+                  onChange={(e) => updateConnection({ label: e.target.value })}
+                  placeholder="e.g., HTTP/REST, Database query"
+                  className="border-[#6B7280] focus:border-[#F5C518] focus:ring-[#F5C518]"
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-900 mb-2 block">Type</Label>
+                <Select
+                  value={selectedConnection.type}
+                  onValueChange={(v: 'sync' | 'async') => updateConnection({ type: v })}
+                >
+                  <SelectTrigger className="border-[#6B7280] focus:border-[#F5C518] focus:ring-[#F5C518]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sync">Synchronous (solid line)</SelectItem>
+                    <SelectItem value="async">Asynchronous (dashed line)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-900 mb-2 block">Protocol</Label>
+                <Input
+                  value={selectedConnection.protocol || ''}
+                  onChange={(e) => updateConnection({ protocol: e.target.value })}
+                  placeholder="e.g., HTTPS, WebSocket, gRPC"
+                  className="border-[#6B7280] focus:border-[#F5C518] focus:ring-[#F5C518]"
+                />
+              </div>
+
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  onClick={applyConnectionChanges}
+                  className="flex-1 bg-[#F5C518] hover:bg-[#F5C518]/90 text-gray-900"
+                >
+                  <FaCheck className="mr-2" />
+                  Apply Changes
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={deleteConnection}
+                  className="text-[#EF4444] hover:bg-red-50"
+                >
+                  <FaTrash />
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
