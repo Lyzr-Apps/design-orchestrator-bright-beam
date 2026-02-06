@@ -1,0 +1,91 @@
+{
+  "workflow_name": "System Design Documentation Agent",
+  "architecture_pattern": "Manager-Subagent",
+  "nodes": [
+    {
+      "id": "input_node",
+      "type": "Input",
+      "label": "User Input (Project Requirements)",
+      "nodeCategory": "input"
+    },
+    {
+      "id": "design_orchestrator_manager",
+      "type": "Agent",
+      "label": "Design Orchestrator Manager",
+      "nodeCategory": "agent",
+      "agent_id": "69859abce17e33c11eed1ad0"
+    },
+    {
+      "id": "requirements_analyzer",
+      "type": "Agent",
+      "label": "Requirements Analyzer Agent",
+      "nodeCategory": "agent",
+      "agent_id": "69859a5f76d4fd436bf4b74b"
+    },
+    {
+      "id": "architecture_designer",
+      "type": "Agent",
+      "label": "Architecture Designer Agent",
+      "nodeCategory": "agent",
+      "agent_id": "69859a73b37fff3a03c07bab"
+    },
+    {
+      "id": "technical_validator",
+      "type": "Agent",
+      "label": "Technical Validator Agent",
+      "nodeCategory": "agent",
+      "agent_id": "69859a87e5d25ce3f598cc14"
+    },
+    {
+      "id": "documentation_generator",
+      "type": "Agent",
+      "label": "Documentation Generator Agent",
+      "nodeCategory": "agent",
+      "agent_id": "69859aa0f7f7d3ffa5d865ba"
+    },
+    {
+      "id": "output_node",
+      "type": "Output",
+      "label": "System Design Documentation",
+      "nodeCategory": "end"
+    }
+  ],
+  "edges": [
+    {
+      "source": "input_node",
+      "target": "design_orchestrator_manager"
+    },
+    {
+      "source": "design_orchestrator_manager",
+      "target": "requirements_analyzer"
+    },
+    {
+      "source": "design_orchestrator_manager",
+      "target": "architecture_designer"
+    },
+    {
+      "source": "design_orchestrator_manager",
+      "target": "technical_validator"
+    },
+    {
+      "source": "design_orchestrator_manager",
+      "target": "documentation_generator"
+    },
+    {
+      "source": "requirements_analyzer",
+      "target": "output_node"
+    },
+    {
+      "source": "architecture_designer",
+      "target": "output_node"
+    },
+    {
+      "source": "technical_validator",
+      "target": "output_node"
+    },
+    {
+      "source": "documentation_generator",
+      "target": "output_node"
+    }
+  ]
+}

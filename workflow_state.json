@@ -1,0 +1,59 @@
+{
+  "workflow_name": "System Design Documentation Agent",
+  "architecture_pattern": "Manager-Subagent",
+  "created_at": "2026-02-06T00:00:00Z",
+  "agents": {
+    "manager": {
+      "agent_id": "69859abce17e33c11eed1ad0",
+      "name": "Design Orchestrator Manager",
+      "role": "System Design Orchestration Manager",
+      "provider": "Google",
+      "model": "gemini-2.5-pro"
+    },
+    "sub_agents": [
+      {
+        "agent_id": "69859a5f76d4fd436bf4b74b",
+        "name": "Requirements Analyzer Agent",
+        "role": "Requirements Analysis Specialist",
+        "provider": "Google",
+        "model": "gemini-2.5-pro"
+      },
+      {
+        "agent_id": "69859a73b37fff3a03c07bab",
+        "name": "Architecture Designer Agent",
+        "role": "System Architecture Designer",
+        "provider": "Google",
+        "model": "gemini-2.5-pro"
+      },
+      {
+        "agent_id": "69859a87e5d25ce3f598cc14",
+        "name": "Technical Validator Agent",
+        "role": "Technical Architecture Validator",
+        "provider": "Google",
+        "model": "gemini-2.5-pro"
+      },
+      {
+        "agent_id": "69859aa0f7f7d3ffa5d865ba",
+        "name": "Documentation Generator Agent",
+        "role": "Technical Documentation Specialist",
+        "provider": "Google",
+        "model": "gemini-2.5-pro"
+      }
+    ]
+  },
+  "workflow_structure": {
+    "total_nodes": 7,
+    "total_edges": 9,
+    "entry_point": "input_node",
+    "manager_node": "design_orchestrator_manager",
+    "output_node": "output_node"
+  },
+  "response_schemas": [
+    "response_schemas/requirements_analyzer_agent_response.json",
+    "response_schemas/architecture_designer_agent_response.json",
+    "response_schemas/technical_validator_agent_response.json",
+    "response_schemas/documentation_generator_agent_response.json",
+    "response_schemas/design_orchestrator_manager_response.json"
+  ],
+  "status": "completed"
+}
