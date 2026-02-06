@@ -45,6 +45,8 @@ import {
   componentTemplates,
   createNodeFromTemplate,
   exportProjectJSON,
+  exportProjectSVG,
+  exportProjectPNG,
   parseAgentResponse,
   CanvasUtils,
   generateId
@@ -387,17 +389,26 @@ Please provide a comprehensive system design with components (nodes) and their c
   }
 
   // Export
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!project) return
 
-    if (exportFormat === 'json') {
-      exportProjectJSON(project)
-    } else {
-      // For PNG/SVG/PDF, would need html2canvas or similar
-      alert(`Export to ${exportFormat.toUpperCase()} will be implemented with html2canvas`)
-    }
+    try {
+      if (exportFormat === 'json') {
+        exportProjectJSON(project)
+      } else if (exportFormat === 'svg') {
+        exportProjectSVG(project, canvasRef.current)
+      } else if (exportFormat === 'png') {
+        await exportProjectPNG(project, canvasRef.current)
+      } else if (exportFormat === 'pdf') {
+        // PDF export would require jsPDF
+        alert('PDF export is not yet implemented. Please use PNG or SVG instead.')
+      }
 
-    setExportModalOpen(false)
+      setExportModalOpen(false)
+    } catch (error) {
+      console.error('Export error:', error)
+      alert('Export failed. Please try again.')
+    }
   }
 
   const selectedNode = project?.nodes.find(n => n.id === canvasState.selectedNodeId)
@@ -780,6 +791,7 @@ Please provide a comprehensive system design with components (nodes) and their c
               return (
                 <div
                   key={node.id}
+                  data-node-id={node.id}
                   className={`absolute bg-white rounded-lg p-4 shadow-lg border-2 transition-all cursor-pointer ${
                     isSelected ? 'border-[#F5C518]' : isConnectionSource ? 'border-blue-500 ring-2 ring-blue-300' : 'border-[#6B7280] hover:border-[#F5C518]'
                   }`}

@@ -194,14 +194,121 @@ export function createNodeFromTemplate(
  * Export project as JSON
  */
 export function exportProjectJSON(project: Project): void {
-  const data = JSON.stringify(project, null, 2)
-  const blob = new Blob([data], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${project.name.replace(/\s+/g, '-').toLowerCase()}.json`
-  a.click()
-  URL.revokeObjectURL(url)
+  try {
+    const data = JSON.stringify(project, null, 2)
+    const blob = new Blob([data], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${project.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Export failed:', error)
+    alert('Failed to export project. Please try again.')
+  }
+}
+
+/**
+ * Export project as SVG
+ */
+export function exportProjectSVG(project: Project, canvasElement: HTMLElement | null): void {
+  if (!canvasElement) {
+    alert('Canvas element not found')
+    return
+  }
+
+  try {
+    // Get the SVG element from canvas
+    const svgElement = canvasElement.querySelector('svg')
+    if (!svgElement) {
+      alert('No diagram to export')
+      return
+    }
+
+    // Clone the SVG
+    const svgClone = svgElement.cloneNode(true) as SVGElement
+
+    // Add nodes as text elements to SVG
+    const nodes = canvasElement.querySelectorAll('[data-node-id]')
+    nodes.forEach((nodeEl) => {
+      const rect = nodeEl.getBoundingClientRect()
+      const canvasRect = canvasElement.getBoundingClientRect()
+      const text = (nodeEl.textContent || '').trim()
+
+      // Create a group for the node
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      const rectEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+      rectEl.setAttribute('x', String(rect.left - canvasRect.left))
+      rectEl.setAttribute('y', String(rect.top - canvasRect.top))
+      rectEl.setAttribute('width', String(rect.width))
+      rectEl.setAttribute('height', String(rect.height))
+      rectEl.setAttribute('fill', 'white')
+      rectEl.setAttribute('stroke', '#6B7280')
+      rectEl.setAttribute('stroke-width', '2')
+      g.appendChild(rectEl)
+      svgClone.appendChild(g)
+    })
+
+    // Serialize SVG
+    const serializer = new XMLSerializer()
+    const svgString = serializer.serializeToString(svgClone)
+    const blob = new Blob([svgString], { type: 'image/svg+xml' })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${project.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.svg`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('SVG export failed:', error)
+    alert('Failed to export as SVG. Please try again.')
+  }
+}
+
+/**
+ * Export project as PNG
+ */
+export async function exportProjectPNG(project: Project, canvasElement: HTMLElement | null): Promise<void> {
+  if (!canvasElement) {
+    alert('Canvas element not found')
+    return
+  }
+
+  try {
+    // Dynamic import of html2canvas
+    const html2canvas = (await import('html2canvas')).default
+
+    const canvas = await html2canvas(canvasElement, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      logging: false
+    })
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        alert('Failed to generate image')
+        return
+      }
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${project.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    })
+  } catch (error) {
+    console.error('PNG export failed:', error)
+    alert('Failed to export as PNG. This feature requires html2canvas library to be installed.')
+  }
 }
 
 /**
