@@ -890,8 +890,8 @@ Please provide a comprehensive system design with components (nodes) and their c
 
         {/* Right Panel */}
         {rightPanelOpen && selectedNode && (
-          <div className="w-96 border-l border-[#6B7280] bg-white overflow-y-auto">
-            <div className="p-4">
+          <div className="w-96 border-l border-[#6B7280] bg-white flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Node Properties</h2>
                 <Button
@@ -984,8 +984,11 @@ Please provide a comprehensive system design with components (nodes) and their c
                   </div>
                 </TabsContent>
               </Tabs>
+            </div>
 
-              <div className="mt-6 flex space-x-2">
+            {/* Fixed action buttons at bottom */}
+            <div className="border-t border-[#6B7280] p-4 bg-white">
+              <div className="flex space-x-2">
                 <Button
                   onClick={applyNodeChanges}
                   className="flex-1 bg-[#F5C518] hover:bg-[#F5C518]/90 text-gray-900"
