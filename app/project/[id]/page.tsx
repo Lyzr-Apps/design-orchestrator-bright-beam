@@ -27,7 +27,8 @@ import {
   FaCheck,
   FaTrash,
   FaHistory,
-  FaBook
+  FaBook,
+  FaLink
 } from 'react-icons/fa'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -96,6 +97,8 @@ export default function DesignCanvas() {
   // Connection mode
   const [connectionMode, setConnectionMode] = useState(false)
   const [connectionSource, setConnectionSource] = useState<string | null>(null)
+  const [selectedConnection, setSelectedConnection] = useState<NodeConnection | null>(null)
+  const [connectionEditOpen, setConnectionEditOpen] = useState(false)
 
   // Drag state
   const [draggedNode, setDraggedNode] = useState<SystemNode | null>(null)
@@ -181,6 +184,36 @@ Please provide a comprehensive system design with components (nodes) and their c
 
   // Node operations
   const handleNodeClick = (nodeId: string) => {
+    // If in connection mode, handle connection creation
+    if (connectionMode) {
+      if (!connectionSource) {
+        // Select source node
+        setConnectionSource(nodeId)
+      } else if (connectionSource !== nodeId) {
+        // Create connection from source to target
+        const newConnection: NodeConnection = {
+          id: generateId(),
+          source: connectionSource,
+          target: nodeId,
+          type: 'sync',
+          label: 'Connection',
+          protocol: 'HTTP'
+        }
+        const updatedProject = {
+          ...project!,
+          connections: [...project!.connections, newConnection]
+        }
+        setProject(updatedProject)
+        ProjectStorage.save(updatedProject)
+
+        // Reset connection mode
+        setConnectionSource(null)
+        setConnectionMode(false)
+      }
+      return
+    }
+
+    // Normal click - open right panel
     setCanvasState(prev => ({ ...prev, selectedNodeId: nodeId }))
     setRightPanelOpen(true)
   }
@@ -314,6 +347,43 @@ Please provide a comprehensive system design with components (nodes) and their c
     ProjectStorage.save(updatedProject)
     setRightPanelOpen(false)
     setCanvasState(prev => ({ ...prev, selectedNodeId: null }))
+  }
+
+  // Connection operations
+  const handleConnectionClick = (connection: NodeConnection) => {
+    setSelectedConnection(connection)
+    setConnectionEditOpen(true)
+  }
+
+  const updateConnection = (updates: Partial<NodeConnection>) => {
+    if (!selectedConnection || !project) return
+
+    const updatedConnections = project.connections.map(c =>
+      c.id === selectedConnection.id ? { ...c, ...updates } : c
+    )
+
+    setProject({ ...project, connections: updatedConnections })
+    setSelectedConnection({ ...selectedConnection, ...updates })
+  }
+
+  const applyConnectionChanges = () => {
+    saveProject()
+    setConnectionEditOpen(false)
+    setSelectedConnection(null)
+  }
+
+  const deleteConnection = () => {
+    if (!selectedConnection || !project) return
+
+    const updatedProject = {
+      ...project,
+      connections: project.connections.filter(c => c.id !== selectedConnection.id)
+    }
+
+    setProject(updatedProject)
+    ProjectStorage.save(updatedProject)
+    setConnectionEditOpen(false)
+    setSelectedConnection(null)
   }
 
   // Export
@@ -576,12 +646,13 @@ Please provide a comprehensive system design with components (nodes) and their c
               )
               const IconComponent = iconComponents[node.icon || 'FaCube']
               const isSelected = canvasState.selectedNodeId === node.id
+              const isConnectionSource = connectionSource === node.id
 
               return (
                 <div
                   key={node.id}
                   className={`absolute bg-white rounded-lg p-4 shadow-lg border-2 transition-all cursor-pointer ${
-                    isSelected ? 'border-[#F5C518]' : 'border-[#6B7280] hover:border-[#F5C518]'
+                    isSelected ? 'border-[#F5C518]' : isConnectionSource ? 'border-blue-500 ring-2 ring-blue-300' : 'border-[#6B7280] hover:border-[#F5C518]'
                   }`}
                   style={{
                     left: `${screenPos.x}px`,
@@ -667,6 +738,18 @@ Please provide a comprehensive system design with components (nodes) and their c
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => {
+                setConnectionMode(!connectionMode)
+                setConnectionSource(null)
+              }}
+              className={`hover:bg-[#F9FAFB] ${connectionMode ? 'bg-[#F5C518] text-gray-900' : ''}`}
+              title="Connect nodes"
+            >
+              <FaLink />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => handleZoom(0.1)}
               className="hover:bg-[#F9FAFB]"
             >
@@ -697,6 +780,13 @@ Please provide a comprehensive system design with components (nodes) and their c
               <FaTh />
             </Button>
           </div>
+
+          {/* Connection Mode Indicator */}
+          {connectionMode && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg">
+              {connectionSource ? 'Click target node to connect' : 'Click source node to start'}
+            </div>
+          )}
         </div>
 
         {/* Right Panel */}
