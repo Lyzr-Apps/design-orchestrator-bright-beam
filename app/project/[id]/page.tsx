@@ -93,6 +93,10 @@ export default function DesignCanvas() {
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [exportFormat, setExportFormat] = useState<ExportFormat>('json')
 
+  // Connection mode
+  const [connectionMode, setConnectionMode] = useState(false)
+  const [connectionSource, setConnectionSource] = useState<string | null>(null)
+
   // Drag state
   const [draggedNode, setDraggedNode] = useState<SystemNode | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
