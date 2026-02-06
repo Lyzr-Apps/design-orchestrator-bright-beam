@@ -702,15 +702,52 @@ Please provide a comprehensive system design with components (nodes) and their c
                   canvasState.zoom
                 )
 
+                // Calculate path with right-angle turns and rounded corners
                 const midX = (start.x + end.x) / 2
-                const midY = (start.y + end.y) / 2
+                const radius = 20 // Corner radius for smoother turns
                 const isSelected = selectedConnection?.id === conn.id
+
+                // Create path with L-shaped routing with rounded corners
+                let pathD = ''
+                if (Math.abs(start.y - end.y) < 50) {
+                  // Nearly horizontal - straight line
+                  pathD = `M ${start.x} ${start.y} L ${end.x} ${end.y}`
+                } else if (Math.abs(start.x - end.x) < 50) {
+                  // Nearly vertical - straight line
+                  pathD = `M ${start.x} ${start.y} L ${end.x} ${end.y}`
+                } else {
+                  // L-shaped path with rounded corner at midpoint
+                  const horizontal = Math.abs(start.x - end.x) > Math.abs(start.y - end.y)
+
+                  if (horizontal) {
+                    // Horizontal then vertical
+                    const cornerX = midX
+                    pathD = `M ${start.x} ${start.y}
+                             L ${cornerX - radius} ${start.y}
+                             Q ${cornerX} ${start.y} ${cornerX} ${start.y + (end.y > start.y ? radius : -radius)}
+                             L ${cornerX} ${end.y - (end.y > start.y ? radius : -radius)}
+                             Q ${cornerX} ${end.y} ${cornerX + (end.x > cornerX ? radius : -radius)} ${end.y}
+                             L ${end.x} ${end.y}`
+                  } else {
+                    // Vertical then horizontal
+                    const cornerY = (start.y + end.y) / 2
+                    pathD = `M ${start.x} ${start.y}
+                             L ${start.x} ${cornerY - radius}
+                             Q ${start.x} ${cornerY} ${start.x + (end.x > start.x ? radius : -radius)} ${cornerY}
+                             L ${end.x - (end.x > start.x ? radius : -radius)} ${cornerY}
+                             Q ${end.x} ${cornerY} ${end.x} ${cornerY + (end.y > cornerY ? radius : -radius)}
+                             L ${end.x} ${end.y}`
+                  }
+                }
+
+                const midX2 = (start.x + end.x) / 2
+                const midY2 = (start.y + end.y) / 2
 
                 return (
                   <g key={conn.id}>
                     {/* Invisible thick line for easier clicking */}
                     <path
-                      d={`M ${start.x} ${start.y} Q ${midX} ${start.y} ${midX} ${midY} T ${end.x} ${end.y}`}
+                      d={pathD}
                       fill="none"
                       stroke="transparent"
                       strokeWidth="20"
@@ -722,7 +759,7 @@ Please provide a comprehensive system design with components (nodes) and their c
                     />
                     {/* Visible line */}
                     <path
-                      d={`M ${start.x} ${start.y} Q ${midX} ${start.y} ${midX} ${midY} T ${end.x} ${end.y}`}
+                      d={pathD}
                       fill="none"
                       stroke={isSelected ? '#F5C518' : '#6B7280'}
                       strokeWidth={isSelected ? '3' : '2'}
@@ -730,18 +767,32 @@ Please provide a comprehensive system design with components (nodes) and their c
                       markerEnd="url(#arrowhead)"
                       style={{ pointerEvents: 'none' }}
                     />
-                    {/* Label */}
+                    {/* Label with background */}
                     {conn.label && (
-                      <text
-                        x={midX}
-                        y={midY - 10}
-                        fill="#6B7280"
-                        fontSize="12"
-                        textAnchor="middle"
-                        style={{ pointerEvents: 'none' }}
-                      >
-                        {conn.label}
-                      </text>
+                      <g>
+                        <rect
+                          x={midX2 - (conn.label.length * 3.5)}
+                          y={midY2 - 18}
+                          width={conn.label.length * 7}
+                          height={20}
+                          fill="white"
+                          stroke="#6B7280"
+                          strokeWidth="1"
+                          rx="4"
+                          style={{ pointerEvents: 'none' }}
+                        />
+                        <text
+                          x={midX2}
+                          y={midY2 - 4}
+                          fill="#6B7280"
+                          fontSize="11"
+                          fontWeight="500"
+                          textAnchor="middle"
+                          style={{ pointerEvents: 'none' }}
+                        >
+                          {conn.label}
+                        </text>
+                      </g>
                     )}
                   </g>
                 )
