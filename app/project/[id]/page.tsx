@@ -636,54 +636,8 @@ Please provide a comprehensive system design with components (nodes) and their c
               backgroundPosition: `${canvasState.pan.x}px ${canvasState.pan.y}px`
             }}
           >
-            {/* Nodes */}
-            {project.nodes.map((node) => {
-              const screenPos = CanvasUtils.canvasToScreen(
-                node.position.x,
-                node.position.y,
-                canvasState.pan,
-                canvasState.zoom
-              )
-              const IconComponent = iconComponents[node.icon || 'FaCube']
-              const isSelected = canvasState.selectedNodeId === node.id
-              const isConnectionSource = connectionSource === node.id
-
-              return (
-                <div
-                  key={node.id}
-                  className={`absolute bg-white rounded-lg p-4 shadow-lg border-2 transition-all cursor-pointer ${
-                    isSelected ? 'border-[#F5C518]' : isConnectionSource ? 'border-blue-500 ring-2 ring-blue-300' : 'border-[#6B7280] hover:border-[#F5C518]'
-                  }`}
-                  style={{
-                    left: `${screenPos.x}px`,
-                    top: `${screenPos.y}px`,
-                    width: `${300 * canvasState.zoom}px`,
-                    transform: `scale(${canvasState.zoom})`,
-                    transformOrigin: 'top left'
-                  }}
-                  onClick={() => handleNodeClick(node.id)}
-                  onMouseDown={(e) => handleNodeDragStart(e, node)}
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-[#F5C518] rounded-lg flex items-center justify-center flex-shrink-0">
-                      {IconComponent && <IconComponent className="text-white text-lg" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{node.name}</h3>
-                      <p className="text-xs text-[#6B7280] line-clamp-2 mt-1">{node.description}</p>
-                      {node.specifications && (
-                        <div className="mt-2 text-xs text-[#6B7280]">
-                          <div>{node.specifications.technology}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* Connections */}
-            <svg className="absolute inset-0 w-full h-full">
+            {/* Connections - rendered first so nodes appear on top */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
               {project.connections.map((conn) => {
                 const sourceNode = project.nodes.find(n => n.id === conn.source)
                 const targetNode = project.nodes.find(n => n.id === conn.target)
@@ -810,6 +764,60 @@ Please provide a comprehensive system design with components (nodes) and their c
                 </marker>
               </defs>
             </svg>
+
+            {/* Nodes - rendered after connections so they appear on top */}
+            {project.nodes.map((node) => {
+              const screenPos = CanvasUtils.canvasToScreen(
+                node.position.x,
+                node.position.y,
+                canvasState.pan,
+                canvasState.zoom
+              )
+              const IconComponent = iconComponents[node.icon || 'FaCube']
+              const isSelected = canvasState.selectedNodeId === node.id
+              const isConnectionSource = connectionSource === node.id
+
+              return (
+                <div
+                  key={node.id}
+                  className={`absolute bg-white rounded-lg p-4 shadow-lg border-2 transition-all cursor-pointer ${
+                    isSelected ? 'border-[#F5C518]' : isConnectionSource ? 'border-blue-500 ring-2 ring-blue-300' : 'border-[#6B7280] hover:border-[#F5C518]'
+                  }`}
+                  style={{
+                    left: `${screenPos.x}px`,
+                    top: `${screenPos.y}px`,
+                    width: `${300 * canvasState.zoom}px`,
+                    transform: `scale(${canvasState.zoom})`,
+                    transformOrigin: 'top left',
+                    zIndex: 10
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleNodeClick(node.id)
+                  }}
+                  onMouseDown={(e) => {
+                    if (!connectionMode) {
+                      handleNodeDragStart(e, node)
+                    }
+                  }}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="w-10 h-10 bg-[#F5C518] rounded-lg flex items-center justify-center flex-shrink-0">
+                      {IconComponent && <IconComponent className="text-white text-lg" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">{node.name}</h3>
+                      <p className="text-xs text-[#6B7280] line-clamp-2 mt-1">{node.description}</p>
+                      {node.specifications && (
+                        <div className="mt-2 text-xs text-[#6B7280]">
+                          <div>{node.specifications.technology}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
           {/* Canvas Controls */}
