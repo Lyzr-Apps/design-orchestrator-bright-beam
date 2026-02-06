@@ -201,10 +201,18 @@ export function exportProjectJSON(project: Project): void {
     const a = document.createElement('a')
     a.href = url
     a.download = `${project.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.json`
+    a.style.display = 'none'
     document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+
+    // Use setTimeout to ensure click is registered
+    setTimeout(() => {
+      a.click()
+      // Clean up after download starts
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }, 100)
+    }, 0)
   } catch (error) {
     console.error('Export failed:', error)
     alert('Failed to export project. Please try again.')
@@ -261,10 +269,18 @@ export function exportProjectSVG(project: Project, canvasElement: HTMLElement | 
     const a = document.createElement('a')
     a.href = url
     a.download = `${project.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.svg`
+    a.style.display = 'none'
     document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+
+    // Use setTimeout to ensure click is registered
+    setTimeout(() => {
+      a.click()
+      // Clean up after download starts
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }, 100)
+    }, 0)
   } catch (error) {
     console.error('SVG export failed:', error)
     alert('Failed to export as SVG. Please try again.')
@@ -300,10 +316,18 @@ export async function exportProjectPNG(project: Project, canvasElement: HTMLElem
       const a = document.createElement('a')
       a.href = url
       a.download = `${project.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.png`
+      a.style.display = 'none'
       document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+
+      // Use setTimeout to ensure click is registered
+      setTimeout(() => {
+        a.click()
+        // Clean up after download starts
+        setTimeout(() => {
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+        }, 100)
+      }, 0)
     })
   } catch (error) {
     console.error('PNG export failed:', error)
